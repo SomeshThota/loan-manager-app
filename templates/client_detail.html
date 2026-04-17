@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="h4 mb-0">{{ client.name }}</h2>
+        <div class="small text-muted">
+            {% if client.phone %}{{ client.phone }}{% else %}No phone{% endif %}
+            {% if client.reminder_date %} | Reminder: {{ client.reminder_date }}{% endif %}
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('edit_client', client_id=client.id) }}" class="btn btn-outline-primary">Edit Client</a>
+        <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">Back to list</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Calculation Date</label>
+                <input type="date" name="calc_date" class="form-control form-control-lg" value="{{ calc_date }}">
+            </div>
+            <div class="col-md-3 d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Recalculate</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4 col-6">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="small-label">Principal Outstanding</div>
+                <div class="h5 fw-bold">₹{{ '%.2f'|format(snapshot.principal_outstanding) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-6">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="small-label">Interest Outstanding</div>
+                <div class="h5 fw-bold text-danger">₹{{ '%.2f'|format(snapshot.interest_outstanding) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <div class="small-label">Total Outstanding</div>
+                <div class="h4 fw-bold text-primary">₹{{ '%.2f'|format(snapshot.total_outstanding) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div class="row g-3 text-center">
+            <div class="col-md-3 col-6">
+                <div class="small-label">Total Principal Given</div>
+                <div class="fw-bold">₹{{ '%.2f'|format(snapshot.total_principal) }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="small-label">Total Interest (Till Calc Date)</div>
+                <div class="fw-bold text-danger">₹{{ '%.2f'|format(snapshot.total_interest) }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="small-label">Total Expected</div>
+                <div class="fw-bold text-primary">₹{{ '%.2f'|format(snapshot.total_due) }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="small-label">Total Paid</div>
+                <div class="fw-bold text-success">₹{{ '%.2f'|format(snapshot.total_paid) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header fw-bold">Add Loan Entry</div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('add_loan_entry', client_id=client.id) }}" class="big-form">
+                    <div class="mb-3">
+                        <label class="form-label">Principal Amount</label>
+                        <input type="number" step="0.01" min="0" name="principal" class="form-control form-control-lg"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Interest per month (%)</label>
+                        <input type="number" step="0.1" min="0" name="monthly_rate" class="form-control form-control-lg"
+                            value="2" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Given Date</label>
+                        <input type="date" name="given_date" class="form-control form-control-lg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Due Date (optional)</label>
+                        <input type="date" name="due_date" class="form-control form-control-lg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100">Add Loan</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Add Payment</div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('add_payment', client_id=client.id) }}" class="big-form">
+                    <div class="mb-3">
+                        <label class="form-label">Payment Amount</label>
+                        <input type="number" step="0.01" min="0" name="amount" class="form-control form-control-lg"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Date</label>
+                        <input type="date" name="payment_date" class="form-control form-control-lg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Allocation</label>
+                        <select id="allocType" name="alloc_type" class="form-select form-select-lg">
+                            <option value="auto">Auto (interest first, then principal)</option>
+                            <option value="interest_only">Interest only</option>
+                            <option value="principal_only">Principal only</option>
+                            <option value="split_custom">Split custom</option>
+                        </select>
+                    </div>
+                    <div id="splitFields" class="row g-2 d-none">
+                        <div class="col-6">
+                            <label class="form-label">Split Interest</label>
+                            <input type="number" step="0.01" min="0" name="alloc_interest" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Split Principal</label>
+                            <input type="number" step="0.01" min="0" name="alloc_principal" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Add Payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header fw-bold">Loan Entries with Interest Breakdown</div>
+            <div class="card-body">
+                {% if snapshot.loan_breakdown %}
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Principal</th>
+                                <th>Rate</th>
+                                <th>Months</th>
+                                <th>Interest</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in snapshot.loan_breakdown %}
+                            <tr>
+                                <td>{{ row.loan.given_date }}</td>
+                                <td>₹{{ '%.2f'|format(row.loan.principal) }}</td>
+                                <td>{{ '%.2f'|format(row.loan.monthly_rate) }}%</td>
+                                <td>{{ '%.2f'|format(row.months_elapsed) }}</td>
+                                <td>₹{{ '%.2f'|format(row.interest) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('edit_loan_entry', loan_id=row.loan.id) }}"
+                                        class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                                    <form method="post" action="{{ url_for('delete_loan_entry', loan_id=row.loan.id) }}"
+                                        class="d-inline"
+                                        onsubmit="return confirm('Delete this loan entry?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No loan entries yet. Add first principal amount on left side.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Payment History</div>
+            <div class="card-body">
+                {% if snapshot.payments %}
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Paid</th>
+                                <th>Interest Part</th>
+                                <th>Principal Part</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in snapshot.payments %}
+                            <tr>
+                                <td>{{ p.payment_date }}</td>
+                                <td>₹{{ '%.2f'|format(p.amount) }}</td>
+                                <td>₹{{ '%.2f'|format(p.alloc_interest) }}</td>
+                                <td>₹{{ '%.2f'|format(p.alloc_principal) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('edit_payment', payment_id=p.id) }}"
+                                        class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                                    <form method="post" action="{{ url_for('delete_payment', payment_id=p.id) }}"
+                                        class="d-inline"
+                                        onsubmit="return confirm('Delete this payment?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No payments recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const allocType = document.getElementById("allocType");
+        const splitFields = document.getElementById("splitFields");
+        if (!allocType || !splitFields) return;
+
+        function toggleSplitFields() {
+            if (allocType.value === "split_custom") {
+                splitFields.classList.remove("d-none");
+            } else {
+                splitFields.classList.add("d-none");
+            }
+        }
+
+        allocType.addEventListener("change", toggleSplitFields);
+        toggleSplitFields();
+    })();
+</script>
+{% endblock %}
+

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="mb-2">
+            <a href="{{ url_for('client_detail', client_id=client.id) }}" class="btn btn-sm btn-outline-secondary">Back to client</a>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Edit Client</div>
+            <div class="card-body">
+                <form method="post" class="big-form">
+                    <div class="mb-3">
+                        <label class="form-label">Client Name</label>
+                        <input type="text" name="name" class="form-control form-control-lg" value="{{ client.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone (optional)</label>
+                        <input type="text" name="phone" class="form-control form-control-lg" value="{{ client.phone or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reminder Date (optional)</label>
+                        <input type="date" name="reminder_date" class="form-control form-control-lg" value="{{ client.reminder_date or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea name="notes" class="form-control" rows="2">{{ client.notes or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Save Client Details</button>
+                </form>
+                <hr>
+                <form method="post" action="{{ url_for('delete_client', client_id=client.id) }}"
+                    onsubmit="return confirm('Delete this client and all loan/payment history? This cannot be undone.');">
+                    <button type="submit" class="btn btn-outline-danger w-100">Delete Client</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

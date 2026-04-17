@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Add New Client</div>
+            <div class="card-body">
+                <form method="post" class="big-form">
+                    <div class="mb-3">
+                        <label class="form-label">Client Name</label>
+                        <input type="text" name="name" class="form-control form-control-lg" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone (optional)</label>
+                        <input type="text" name="phone" class="form-control form-control-lg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reminder Date (optional)</label>
+                        <input type="date" name="reminder_date" class="form-control form-control-lg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Save Client Name</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Client List (Tap name to open full ledger)</div>
+            <div class="card-body">
+                <form method="get" class="row g-2 mb-3">
+                    <div class="col-sm-9">
+                        <input type="text" name="search" class="form-control form-control-lg"
+                            placeholder="Search by name..." value="{{ search }}">
+                    </div>
+                    <input type="hidden" name="status" value="{{ status or 'all' }}">
+                    <div class="col-sm-3 d-grid">
+                        <button type="submit" class="btn btn-outline-primary btn-lg">Search</button>
+                    </div>
+                </form>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <a href="{{ url_for('clients', status='all', search=search) }}"
+                        class="btn btn-sm {% if status == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        All
+                    </a>
+                    <a href="{{ url_for('clients', status='pending', search=search) }}"
+                        class="btn btn-sm {% if status == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                        Pending
+                    </a>
+                    <a href="{{ url_for('clients', status='reminder', search=search) }}"
+                        class="btn btn-sm {% if status == 'reminder' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                        Reminder
+                    </a>
+                    <a href="{{ url_for('clients', status='clear', search=search) }}"
+                        class="btn btn-sm {% if status == 'clear' %}btn-success{% else %}btn-outline-success{% endif %}">
+                        Clear
+                    </a>
+                </div>
+
+                {% if clients_info %}
+                <div class="list-group">
+                    {% for item in clients_info %}
+                    {% set c = item.client %}
+                    {% set s = item.snapshot %}
+                    <a href="{{ url_for('client_detail', client_id=c.id) }}"
+                        class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <div class="fw-semibold fs-5">{{ c.name }}</div>
+                                <div class="small text-muted mb-2">
+                                    {% if c.phone %}{{ c.phone }}{% else %}No phone{% endif %}
+                                    {% if s.last_payment_date %} | Last paid: {{ s.last_payment_date }}{% endif %}
+                                </div>
+                                <div class="client-mini-grid">
+                                    <div><span class="text-muted small">Principal due</span><br><strong>₹{{ '%.0f'|format(s.principal_outstanding) }}</strong></div>
+                                    <div><span class="text-muted small">Interest due</span><br><strong>₹{{ '%.0f'|format(s.interest_outstanding) }}</strong></div>
+                                    <div><span class="text-muted small">Total due</span><br><strong class="text-primary">₹{{ '%.0f'|format(s.total_outstanding) }}</strong></div>
+                                    <div><span class="text-muted small">Loan entries</span><br><strong>{{ s.loan_count }}</strong></div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                {% if item.reminder_due or s.overdue_loan_count > 0 %}
+                                <span class="badge bg-danger">Reminder</span>
+                                {% elif s.total_outstanding > 0 %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% else %}
+                                <span class="badge bg-success">Clear</span>
+                                {% endif %}
+                                <div class="mt-2">
+                                    <span class="btn btn-sm btn-primary">Open Full Ledger</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            Principal given: ₹{{ '%.0f'|format(s.total_principal) }} |
+                            Interest till today: ₹{{ '%.0f'|format(s.total_interest) }} |
+                            Total expected: ₹{{ '%.0f'|format(s.total_due) }}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No clients found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

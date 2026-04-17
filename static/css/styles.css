@@ -1,0 +1,48 @@
+body {
+    background-color: #f5f7fb;
+}
+
+.navbar-brand {
+    letter-spacing: 0.03em;
+}
+
+.big-card {
+    border-radius: 0.75rem;
+}
+
+.small-label {
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: #6c757d;
+    margin-bottom: 0.35rem;
+}
+
+.big-form .form-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.big-form input.form-control-lg,
+.big-form select.form-select-lg {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.client-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 0.5rem 1rem;
+}
+
+@media (max-width: 575.98px) {
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .btn-lg {
+        font-size: 1rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+

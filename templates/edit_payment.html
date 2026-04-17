@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="mb-2">
+            <a href="{{ url_for('client_detail', client_id=payment.client_id) }}" class="btn btn-sm btn-outline-secondary">Back to client</a>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Edit Payment</div>
+            <div class="card-body">
+                <form method="post" class="big-form">
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" step="0.01" min="0" name="amount" class="form-control form-control-lg"
+                            value="{{ '%.2f'|format(payment.amount) }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Date</label>
+                        <input type="date" name="payment_date" class="form-control form-control-lg"
+                            value="{{ payment.payment_date }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Allocation</label>
+                        <select id="allocTypeEdit" name="alloc_type" class="form-select form-select-lg">
+                            <option value="auto" {% if payment.alloc_type=='auto' %}selected{% endif %}>Auto
+                            </option>
+                            <option value="interest_only" {% if payment.alloc_type=='interest_only' %}selected{% endif %}>
+                                Interest only</option>
+                            <option value="principal_only" {% if payment.alloc_type=='principal_only' %}selected{% endif %}>
+                                Principal only</option>
+                            <option value="split_custom" {% if payment.alloc_type=='split_custom' %}selected{% endif %}>
+                                Split custom</option>
+                        </select>
+                    </div>
+                    <div id="splitFieldsEdit" class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label">Interest Part</label>
+                            <input type="number" step="0.01" min="0" name="alloc_interest" class="form-control"
+                                value="{{ '%.2f'|format(payment.alloc_interest) }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Principal Part</label>
+                            <input type="number" step="0.01" min="0" name="alloc_principal" class="form-control"
+                                value="{{ '%.2f'|format(payment.alloc_principal) }}">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2">{{ payment.notes }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const allocType = document.getElementById("allocTypeEdit");
+        const splitFields = document.getElementById("splitFieldsEdit");
+        if (!allocType || !splitFields) return;
+
+        function toggleSplitFields() {
+            if (allocType.value === "split_custom") {
+                splitFields.classList.remove("d-none");
+            } else {
+                splitFields.classList.add("d-none");
+            }
+        }
+
+        allocType.addEventListener("change", toggleSplitFields);
+        toggleSplitFields();
+    })();
+</script>
+{% endblock %}
+
